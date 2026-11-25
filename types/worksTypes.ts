@@ -19,5 +19,5 @@ export type Works = {
     githubUrl: string | null,
     demoUrl:string | null,
     createdAt: string,
-    updatedAt: string
+    updatedAt: string | null
 }

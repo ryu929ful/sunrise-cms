@@ -1,4 +1,4 @@
-import { Box, IconButton, InputAdornment, List, ListItem, MenuItem, Paper, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material'
+import { Box, IconButton, InputAdornment,MenuItem, Paper, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import SearchIcon from "@mui/icons-material/Search";
 import type {  Works, WorkStatus } from '@/types/worksTypes';
@@ -158,7 +158,7 @@ const WorkListField = ({technologyList,worksList,mutate}:Props) => {
                             <TableCell>{status.find((s) => {
                                 return s.id === item.status
                             })?.name}</TableCell>
-                            <TableCell>{item.updatedAt ? item.updatedAt : item.createdAt}</TableCell>
+                            <TableCell>{item.updatedAt ? new Date(item.updatedAt).toLocaleDateString("ja-JP") : new Date(item.createdAt).toLocaleDateString("ja-JP")}</TableCell>
                             <TableCell>
                                 <IconButton color='primary'>
                                     <Edit />

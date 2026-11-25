@@ -1,7 +1,6 @@
 import { Media } from '@/types/MediaTypes'
-import React from 'react'
 
-type MediaInputValue = Omit<Media,"id">
+export type MediaInputValue = Omit<Media,"id">
 
 const CreateMedia = async (media:MediaInputValue) => {
   const response = await fetch("http://localhost:2004/media",{

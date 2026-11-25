@@ -1,7 +1,7 @@
 import { WorksFormValues, worksSchema } from "@/validation/works/WorksSchema"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Box, Button, Stack } from "@mui/material"
-import { useEffect } from "react"
+import { Alert, Box, Button, Snackbar, Stack, Typography } from "@mui/material"
+import { useEffect, useState } from "react"
 import { FormProvider, useForm } from "react-hook-form"
 import WorksBasicField from "./WorksBasicField"
 import WorksSettingField from "./WorksSettingField"
@@ -11,6 +11,8 @@ import  useSWR  from "swr"
 import { Technologies } from "@/types/technologyTypes"
 import Loading from "@/components/Loading"
 import AddButton from "@/components/AddButton"
+import CreateWorks, { WorkFormInput } from "@/lib/works/CreateWorks"
+import Notice from "@/components/Notice"
 
 type Props = {
     isEdit?:string,
@@ -18,8 +20,13 @@ type Props = {
 }
 
 const WorksCreate = ({isEdit,editValue}:Props) => {
-    const {data:technologiesList,isLoading,error} = useSWR<Technologies[]>("/technologies",fetchTechnologyList)
-
+    const {data:technologiesList,isLoading,error,mutate} = useSWR<Technologies[]>("/technologies",fetchTechnologyList)
+    const [load,setLoad] = useState<boolean>(false)
+      const [notice, setNotice] = useState({
+      open: false,
+      message: "",
+      status: "success" as "success" | "error" | "warning" | "info",
+    });
     const defaultValues:WorksFormValues = {
         title: "",
         slug: "",
@@ -36,8 +43,36 @@ const WorksCreate = ({isEdit,editValue}:Props) => {
         resolver:zodResolver(worksSchema),
         defaultValues:defaultValues,
     })
-    const onSubmit = (data:WorksFormValues) => {
+    const onSubmit = async (data:WorksFormValues) => {
         console.log(data)
+        const now = new Date().toISOString()
+        const postParam:WorkFormInput = {
+            ...data,
+            thumbnail:null,
+            createdAt: now,
+            updatedAt: now,
+        }
+        console.log("送信パラメタ",postParam)
+
+        try {
+            await CreateWorks(postParam)
+            setLoad(true)
+            setNotice({
+            open: true,
+            message: "制作実績のアップロードが完了しました。",
+            status: "success",
+        });
+            window.location.reload()
+        } catch(err){
+            setNotice({
+            open: true,
+            message: "制作実績のアップロードに失敗しました。",
+            status: "error",
+        });
+        console.error(err)
+        } finally {
+            setLoad(false)
+        }
     }
     useEffect(() => {
         if(isEdit && editValue){
@@ -45,10 +80,13 @@ const WorksCreate = ({isEdit,editValue}:Props) => {
         }
     },[methods.reset,isEdit,editValue])
     if(!technologiesList) return
-    if(isLoading){
+    if(isLoading || load){
         return (
             <Loading />
         )
+    }
+    if(error){
+        <Alert severity="error">データの読み込みに失敗しました</Alert>
     }
   return (
     <FormProvider {...methods}>
@@ -57,6 +95,17 @@ const WorksCreate = ({isEdit,editValue}:Props) => {
     component={"form"}
     onSubmit={methods.handleSubmit(onSubmit)}
     >
+    <Notice
+    open={notice.open}
+    setOpen={(open) =>
+    setNotice((prev) => ({
+        ...prev,
+        open: typeof open === "function" ? open(prev.open) : open,
+    }))
+    }
+    message={notice.message}
+    status={notice.status}
+    />
         <Stack direction="row" spacing={2} sx={{mt:4}}>
             <Box sx={{
                 flex:1

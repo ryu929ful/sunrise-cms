@@ -1,10 +1,9 @@
-import AddButton from '@/components/AddButton'
 import MediaArea from '@/components/MediaArea'
 import PageTitle from '@/components/PageTitle'
 import fetchMediaList from '@/lib/media/fetchMediaList'
 import { MediaFormValues, MediaSchema } from '@/validation/media/MediaSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Box, Button, List, ListItem, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, IconButton, List, ListItem, Snackbar, Stack, Typography } from '@mui/material'
 import { FormProvider, useForm } from 'react-hook-form'
 import AddIcon from '@mui/icons-material/Add';
 import useSWR from "swr"
@@ -12,10 +11,19 @@ import { useState } from 'react'
 import CreateMedia from '@/lib/media/CreateMedia'
 import Loading from '@/components/Loading'
 import { Media } from '@/types/MediaTypes'
+import DeleteMedia from '@/lib/media/DeleteMedia'
+import Notice from '@/components/Notice'
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 const MediaCreateList = () => {
   const {data:mediaList,error,isLoading,mutate} = useSWR<Media[]>("media/",fetchMediaList)
   const [load,setLoad] = useState<boolean>(false)
+  const [open,setOpen] = useState<boolean>(false)
+  const [notice, setNotice] = useState({
+  open: false,
+  message: "",
+  status: "success" as "success" | "error" | "warning" | "info",
+});
   console.log(mediaList)
   const methods = useForm<MediaFormValues>({
     mode:"onBlur",
@@ -24,6 +32,31 @@ const MediaCreateList = () => {
       file:undefined
     }
   })
+  const handleRemove = async (id:string) => {
+    const ok = window.confirm("画像を削除しますか？")
+    if(!ok) return
+    try{
+      setLoad(true)
+      await DeleteMedia(id)
+      await mutate()
+    } catch (err){
+      setNotice({
+  open: true,
+  message: "画像の削除に失敗しました",
+  status: "error",
+});
+      console.error(err)
+    } finally {
+            setNotice({
+  open: true,
+  message: "画像を削除しました",
+  status: "success",
+});
+      setLoad(false)
+      setOpen(true)
+      
+    }
+  }
   const onSubmit = (data:MediaFormValues) => {
     if(!(data.file instanceof File)){
       console.error("画像ファイルを登録してください")
@@ -47,6 +80,12 @@ const MediaCreateList = () => {
         console.log("登録完了")
         await mutate()
         methods.reset()
+        setOpen(true)
+              setNotice({
+  open: true,
+  message: "画像のアップロードが完了しました",
+  status: "success",
+});
       } catch(err) {
         console.error(err)
       }
@@ -54,10 +93,9 @@ const MediaCreateList = () => {
         setLoad(false)
       }
     }
-
     reader.readAsDataURL(data.file)
   }
-  if(isLoading){
+  if(isLoading || load){
     return (
       <Loading />
     )
@@ -65,6 +103,17 @@ const MediaCreateList = () => {
   if(!isLoading){
     return(
       <Box component={"form"} onSubmit={methods.handleSubmit(onSubmit)}>
+          <Notice
+    open={notice.open}
+    setOpen={(open) =>
+      setNotice((prev) => ({
+        ...prev,
+        open: typeof open === "function" ? open(prev.open) : open,
+      }))
+    }
+    message={notice.message}
+    status={notice.status}
+  />
         <FormProvider {...methods}>
           <Box sx={{
         display:"flex",
@@ -106,7 +155,9 @@ const MediaCreateList = () => {
         display: "block",
       }}
     >
-      <Stack direction="column" spacing={1}>
+      <Stack direction="column" spacing={1}　sx={{
+        position:"relative"
+      }}>
         <Box
           component="img"
           src={item.url}
@@ -130,6 +181,19 @@ const MediaCreateList = () => {
         >
           {item.fileName}
         </Typography>
+        <IconButton
+        sx={{
+          position: "absolute",
+          top: -8,
+          right: 0,
+          bgcolor: "rgba(255,255,255,0.9)",
+          "&:hover": {
+            bgcolor: "#fff",
+          },
+        }}
+        color='error' onClick={() => handleRemove(item.id)}>
+          <HighlightOffIcon />
+        </IconButton>
       </Stack>
     </ListItem>
   ))}
