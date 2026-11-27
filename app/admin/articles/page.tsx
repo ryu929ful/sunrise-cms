@@ -1,8 +1,10 @@
 "use client"
 
+import ArticleList from "@/features/article/component/ArticleList"
+
 const page = () => {
   return (
-    <div>page</div>
+    <ArticleList />
   )
 }
 

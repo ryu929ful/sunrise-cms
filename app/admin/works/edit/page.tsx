@@ -1,7 +1,13 @@
 "use client"
+
+import WorksEdit from "@/features/works/components/WorksEdit"
+import { Suspense } from "react"
+
 const page = () => {
   return (
-    <div>page</div>
+    <Suspense>
+        <WorksEdit />
+    </Suspense>
   )
 }
 

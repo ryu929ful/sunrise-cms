@@ -1,12 +1,14 @@
 import { Box, IconButton, InputAdornment,MenuItem, Paper, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import SearchIcon from "@mui/icons-material/Search";
-import type {  Works, WorkStatus } from '@/types/worksTypes';
+import type {  Works, StatusType } from '@/types/worksTypes';
 import { Technologies } from '@/types/technologyTypes';
 import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
 import DeleteWorks from '@/lib/works/DeleteWorks';
 import { KeyedMutator } from 'swr';
+import { useRouter } from 'next/navigation';
+import { status } from '@/lib/status/status';
 type Props = {
     technologyList:Technologies[],
     worksList:Works[],
@@ -17,16 +19,6 @@ const WorkListField = ({technologyList,worksList,mutate}:Props) => {
     const [statusKey,setStatusKey] = useState<string>("")
     const [techKey,setTechKey] = useState<string>("")
 
-    const status = [
-        {
-            id:"draft" as WorkStatus,
-            name:"非公開"
-        },
-        {
-            id:"published" as WorkStatus,
-            name:"公開済み"
-        }
-    ]
     const deleteWorks = async (id:string) => {
         const ok = window.confirm("制作実績を削除しますか？")
         if(ok){
@@ -47,8 +39,7 @@ const WorkListField = ({technologyList,worksList,mutate}:Props) => {
         })
         return title && status && technology
     })
-
-
+    const router = useRouter()
   return (
     <Paper elevation={1} sx={{p:3}}>
         <Box sx={{
@@ -156,11 +147,13 @@ const WorkListField = ({technologyList,worksList,mutate}:Props) => {
                             </Box>
                             </TableCell>
                             <TableCell>{status.find((s) => {
-                                return s.id === item.status
-                            })?.name}</TableCell>
+                                return s.code === item.status
+                            })?.label}</TableCell>
                             <TableCell>{item.updatedAt ? new Date(item.updatedAt).toLocaleDateString("ja-JP") : new Date(item.createdAt).toLocaleDateString("ja-JP")}</TableCell>
                             <TableCell>
-                                <IconButton color='primary'>
+                                <IconButton
+                                onClick={() => router.push(`works/edit?id=${item.id}`)}
+                                color='primary'>
                                     <Edit />
                                 </IconButton>
                                 <IconButton onClick={() => deleteWorks(item.id)} color='error'>

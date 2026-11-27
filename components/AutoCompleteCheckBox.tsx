@@ -39,7 +39,7 @@ const AutoCompleteCheckBox = <T extends Option,>({
         option.id === selected.id
       }
       value={data.filter((item) =>
-        value.includes(item.id)
+        (value ?? []).includes(item.id)
       )}
       onChange={(_, selectedOptions) => {
         onChange(selectedOptions.map((item) => item.id));

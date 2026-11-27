@@ -13,26 +13,31 @@ import Loading from "@/components/Loading"
 import AddButton from "@/components/AddButton"
 import CreateWorks, { WorkFormInput } from "@/lib/works/CreateWorks"
 import Notice from "@/components/Notice"
+import EditWorks from "@/lib/works/EditWorks"
+import { Works } from "@/types/worksTypes"
+import { useRouter } from "next/navigation"
 
 type Props = {
-    isEdit?:string,
-    editValue?:WorksFormValues
+    isEdit?:boolean,
+    editValue?:Works
 }
 
 const WorksCreate = ({isEdit,editValue}:Props) => {
-    const {data:technologiesList,isLoading,error,mutate} = useSWR<Technologies[]>("/technologies",fetchTechnologyList)
+    const router = useRouter()
+    console.log("編集",isEdit,editValue)
+    const {data:technologiesList,isLoading,error} = useSWR<Technologies[]>("/technologies",fetchTechnologyList)
     const [load,setLoad] = useState<boolean>(false)
-      const [notice, setNotice] = useState({
-      open: false,
-      message: "",
-      status: "success" as "success" | "error" | "warning" | "info",
+    const [notice, setNotice] = useState({
+    open: false,
+    message: "",
+    status: "success" as "success" | "error" | "warning" | "info",
     });
     const defaultValues:WorksFormValues = {
         title: "",
         slug: "",
         description: "",
         content: "",
-        technologyIds: [""],
+        technologyIds: [],
         thumbnailId: null,
         githubUrl: null,
         demoUrl: null,
@@ -41,8 +46,9 @@ const WorksCreate = ({isEdit,editValue}:Props) => {
     const methods = useForm<WorksFormValues>({
         mode:"onBlur",
         resolver:zodResolver(worksSchema),
-        defaultValues:defaultValues,
+        defaultValues:isEdit ? editValue : defaultValues,
     })
+
     const onSubmit = async (data:WorksFormValues) => {
         console.log(data)
         const now = new Date().toISOString()
@@ -52,17 +58,25 @@ const WorksCreate = ({isEdit,editValue}:Props) => {
             createdAt: now,
             updatedAt: now,
         }
+        const editParams = {
+            ...data,
+            updatedAt: new Date().toISOString(),
+        }
         console.log("送信パラメタ",postParam)
 
         try {
-            await CreateWorks(postParam)
+            if(isEdit && editValue){
+                await EditWorks(editValue.id,editParams)
+            } else {
+                await CreateWorks(postParam)
+            }
             setLoad(true)
             setNotice({
             open: true,
             message: "制作実績のアップロードが完了しました。",
             status: "success",
         });
-            window.location.reload()
+        router.push("/admin/works")
         } catch(err){
             setNotice({
             open: true,
@@ -126,7 +140,7 @@ const WorksCreate = ({isEdit,editValue}:Props) => {
             mt:2
         }}>
         <Button type="submit" variant="outlined" size="large">
-            下書き保存
+            {isEdit ? ("下書き保存（更新）") : ("下書き保存")}
         </Button>
         <AddButton name="保存して公開"/>
         </Box>

@@ -3,7 +3,7 @@ import PageTitle from '@/components/PageTitle'
 import fetchMediaList from '@/lib/media/fetchMediaList'
 import { MediaFormValues, MediaSchema } from '@/validation/media/MediaSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Alert, Box, Button, IconButton, List, ListItem, Snackbar, Stack, Typography } from '@mui/material'
+import { Box, Button, IconButton, List, ListItem, Stack, Typography } from '@mui/material'
 import { FormProvider, useForm } from 'react-hook-form'
 import AddIcon from '@mui/icons-material/Add';
 import useSWR from "swr"
@@ -16,9 +16,8 @@ import Notice from '@/components/Notice'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 const MediaCreateList = () => {
-  const {data:mediaList,error,isLoading,mutate} = useSWR<Media[]>("media/",fetchMediaList)
+  const {data:mediaList,isLoading,mutate} = useSWR<Media[]>("media/",fetchMediaList)
   const [load,setLoad] = useState<boolean>(false)
-  const [open,setOpen] = useState<boolean>(false)
   const [notice, setNotice] = useState({
   open: false,
   message: "",
@@ -39,21 +38,24 @@ const MediaCreateList = () => {
       setLoad(true)
       await DeleteMedia(id)
       await mutate()
+              // 動作確認用：1秒待機
+        await new Promise((resolve) => {
+            setTimeout(resolve, 1000);
+        });
+      setNotice({
+        open: true,
+        message: "画像を削除しました",
+        status: "success",
+      });
     } catch (err){
       setNotice({
-  open: true,
-  message: "画像の削除に失敗しました",
-  status: "error",
-});
+        open: true,
+        message: "画像の削除に失敗しました",
+        status: "error",
+      });
       console.error(err)
     } finally {
-            setNotice({
-  open: true,
-  message: "画像を削除しました",
-  status: "success",
-});
-      setLoad(false)
-      setOpen(true)
+        setLoad(false)
       
     }
   }
@@ -80,12 +82,11 @@ const MediaCreateList = () => {
         console.log("登録完了")
         await mutate()
         methods.reset()
-        setOpen(true)
-              setNotice({
-  open: true,
-  message: "画像のアップロードが完了しました",
-  status: "success",
-});
+        setNotice({
+          open: true,
+          message: "画像のアップロードが完了しました",
+          status: "success",
+      });
       } catch(err) {
         console.error(err)
       }

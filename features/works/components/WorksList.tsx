@@ -2,7 +2,7 @@ import AddButton from '@/components/AddButton'
 import Loading from '@/components/Loading'
 import PageTitle from '@/components/PageTitle'
 import FetchWorksList from '@/lib/works/FetchWorksList'
-import { Alert, Box, Stack, Typography } from '@mui/material'
+import { Alert, Box, Stack } from '@mui/material'
 import useSWR from "swr"
 import WorkListField from './WorkListField'
 import fetchTechnologyList from '@/lib/technology/fetchTechnologyList'

@@ -1,14 +1,17 @@
 import { WorksFormValues } from "@/validation/works/WorksSchema"
-import { Autocomplete, Box, Checkbox, FormHelperText, Paper, Stack, TextField, Typography } from "@mui/material"
+import { Box,  FormHelperText, Paper, Stack, TextField, Typography } from "@mui/material"
 import  LexicalEditor  from "@/features/lexical/LexicalEditor"
 import { Controller, useFormContext } from "react-hook-form"
 import { Technologies } from "@/types/technologyTypes"
 import AutoCompleteCheckBox from "@/components/AutoCompleteCheckBox"
+import {  useSearchParams } from "next/navigation"
 
 type Props = {
     technologiesList:Technologies[]
 }
 const WorksBasicField = ({technologiesList}:Props) => {
+    const param = useSearchParams()
+    const workId = param.get("id")
     console.log(technologiesList)
     const {control,formState:{errors}} = useFormContext<WorksFormValues>()
     return(
@@ -23,6 +26,7 @@ const WorksBasicField = ({technologiesList}:Props) => {
                     <TextField
                     error={!!errors.title}
                     {...field}
+                    value={field.value ?? ""}
                     fullWidth
                     placeholder="タイトルを入力"
                     sx={{
@@ -94,7 +98,7 @@ const WorksBasicField = ({technologiesList}:Props) => {
             render={({field}) => (
                 <Box>
                     <Typography sx={{fontSize:"13",fontWeight:700}}>詳細本文 *</Typography>
-                    <LexicalEditor value={field.value} onChange={field.onChange}/>
+                    <LexicalEditor key={workId} value={field.value} onChange={field.onChange}/>
                     <FormHelperText sx={{mt:1,color:"red"}}>{errors.content?.message}</FormHelperText>
                 </Box>
             )}

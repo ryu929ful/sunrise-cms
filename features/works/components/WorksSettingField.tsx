@@ -1,23 +1,39 @@
 import { WorksFormValues } from '@/validation/works/WorksSchema'
-import { Box, Button, FormHelperText, IconButton, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material'
+import { Alert, Box, Button, FormHelperText, IconButton, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material'
 import { Controller, useFormContext } from 'react-hook-form'
 import {status} from "../../../lib/status/status"
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import MediaDialogSelect from '@/components/MediaDialogSelect'
 import { Media } from '@/types/MediaTypes'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import fetchMediaList from '@/lib/media/fetchMediaList'
+import useSWR from 'swr'
+import Loading from '@/components/Loading'
 
 const WorksSettingField = () => {
     console.log(status)
-    const [selectedMedia,setSelectedMedia] = useState<Media | null>(null)
+    const {data:mediaList,error,isLoading} = useSWR<Media[]>("media/" ,fetchMediaList)
     const [open,setOpen] = useState<boolean>(false)
-    const {control,formState:{errors},setValue} = useFormContext<WorksFormValues>()
+    const {control,formState:{errors},setValue,watch} = useFormContext<WorksFormValues>()
     const handleRemove = () => {
-        setSelectedMedia(null)
         setValue("thumbnailId",null,{
             shouldDirty:true,
             shouldValidate:true
         })
+    }
+    const thumbnailId = watch("thumbnailId")
+    const selectedMedia = mediaList?.find((item) => {
+        return item.id === thumbnailId
+    })
+    if(isLoading){
+        return (
+            <Loading />
+        )
+    }
+    if(error){
+        return (
+            <Alert>メディアリストが読み込めませんでした。エラー：{error}</Alert>
+        )
     }
   return (
     <Paper elevation={1} sx={{p:3}}>
@@ -169,7 +185,6 @@ const WorksSettingField = () => {
         open={open}
         onClose={() => setOpen(false)}
         onSelect={(media) => {
-            setSelectedMedia(media)
             setValue("thumbnailId",media.id,{
                 shouldValidate:true,
                 shouldDirty:true

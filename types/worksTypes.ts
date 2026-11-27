@@ -1,7 +1,7 @@
 
-export type WorkStatus = "published" | "draft"
+export type StatusType = "published" | "draft"
 
-export type WorksMedia = {
+export type MediaType = {
     id:string,
     url:string,
     fileName:string
@@ -12,10 +12,10 @@ export type Works = {
     slug:string,
     content:string,
     description:string,
-    thumbnail: WorksMedia | null,
+    thumbnail: MediaType | null,
     technologyIds:string[]
     thumbnailId: string | null,
-    status: WorkStatus,
+    status: StatusType,
     githubUrl: string | null,
     demoUrl:string | null,
     createdAt: string,
